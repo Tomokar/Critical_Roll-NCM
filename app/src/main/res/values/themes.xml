@@ -14,7 +14,18 @@
         <!-- Customize your theme here. -->
     </style>
         <!-- Splash Screen Theme -->
-    <style name="LaunchTheme" parent="Theme.AppCompat.NoActionBar">
-        <item name="android:windowBackground">@drawable/droid20</item>
+    <style name="SplashTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">#E68900</item>
+        <item name="colorPrimaryVariant">#BD7100</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">#FFE500</item>
+        <item name="colorSecondaryVariant">#FFF280</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" >?attr/colorPrimaryVariant</item>
+        <!-- Splash Background -->
+        <item name="android:colorBackground">@color/black</item>
     </style>
 </resources>

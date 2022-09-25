@@ -16,8 +16,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Bundle;
-import android.widget.Toast;
+//import android.os.Bundle;
+//import android.widget.Toast;
 import java.util.Objects;
 //
 import java.util.Random;
@@ -28,10 +28,9 @@ public class MainActivity extends AppCompatActivity
     private SensorManager mSensorManager;
     private float mAccel;
     private float mAccelCurrent;
-    private float mAccelLast;
     //
     private ImageView imageViewDice;
-    private Random rng = new Random();
+    private final Random rng = new Random();
     private TextView textViewCrit;
     private TextView numberView;
 
@@ -46,7 +45,7 @@ public class MainActivity extends AppCompatActivity
         Objects.requireNonNull(mSensorManager).registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
 
         imageViewDice = findViewById(R.id.image_view_dice);
-        imageViewDice.setOnClickListener(v -> rollDice());
+        imageViewDice.setOnClickListener(v -> rollDice(1));
 
         textViewCrit = findViewById(R.id.critView);
         numberView = findViewById(R.id.numberView);
@@ -74,14 +73,14 @@ public class MainActivity extends AppCompatActivity
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
-            mAccelLast = mAccelCurrent;
+            float mAccelLast = mAccelCurrent;
             mAccelCurrent = (float) Math.sqrt(x * x + y * y + z * z);
             float delta = mAccelCurrent - mAccelLast;
             mAccel = mAccel * 0.9f + delta;
             if (mAccel > 15f)
             {
 //                Toast.makeText(getApplicationContext(), "Shaken, not stirred.", Toast.LENGTH_LONG).show();
-                rollDice();
+                rollDice(2);
             }
         }
 
@@ -104,12 +103,21 @@ public class MainActivity extends AppCompatActivity
         super.onPause();
     }
 
-    private void rollDice()
+    private void rollDice(int sound)
     {
+        MediaPlayer rollSound = MediaPlayer.create(this, R.raw.roll);
+        switch(sound)
+        {
+            case 1:
+                rollSound = MediaPlayer.create(this, R.raw.roll);
+                break;
+            case 2:
+                rollSound = MediaPlayer.create(this, R.raw.shake);
+                break;
+        }
+
         int randomNumber = rng.nextInt(360);
         imageViewDice.setRotation(randomNumber);
-
-        MediaPlayer rollSound = MediaPlayer.create(this, R.raw.roll);
         rollSound.start();
         textViewCrit.setVisibility(View.INVISIBLE);
         randomNumber = rng.nextInt(20) + 1;
@@ -194,7 +202,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case 20:
                 MediaPlayer succSound = MediaPlayer.create(this, R.raw.noice);
-                succSound.setVolume(0,100);
+//                succSound.setVolume(0,100);
                 succSound.start();
                 imageViewDice.setImageResource(R.drawable.d20_20);
                 textViewCrit.setVisibility(View.VISIBLE);
