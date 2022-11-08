@@ -3,8 +3,6 @@ package com.example.criticalroll_ncm;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 
 import java.util.Random;
@@ -21,15 +19,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         imageViewDice = findViewById(R.id.image_view_dice);
-        imageViewDice.setOnClickListener(new View.OnClickListener()
-                                         {
-                                             @Override
-                                             public void onClick(View v)
-                                             {
-                                                rollDice();
-                                             }
-                                         }
-        );
+        imageViewDice.setOnClickListener(v -> rollDice());
     }
 
     private void rollDice()
