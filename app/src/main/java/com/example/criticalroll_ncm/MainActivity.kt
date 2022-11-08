@@ -1,213 +1,162 @@
-package com.example.criticalroll_ncm;
+package com.example.criticalroll_ncm
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.res.Configuration;
-import android.graphics.Color;
-import android.media.MediaPlayer;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.content.res.Configuration
+import android.graphics.Color
+import android.hardware.Sensor
+import androidx.appcompat.app.AppCompatActivity
+import android.hardware.SensorManager
+import android.widget.TextView
+import android.os.Bundle
+import android.hardware.SensorEventListener
+import android.hardware.SensorEvent
+import android.media.MediaPlayer
+import android.view.View
+import android.widget.ImageView
+import java.util.*
+import kotlin.math.sqrt
 
 //Shake imports
-import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 //import android.os.Bundle;
 //import android.widget.Toast;
-import java.util.Objects;
 //
-import java.util.Random;
-
-public class MainActivity extends AppCompatActivity
-{
+class MainActivity : AppCompatActivity() {
     //Shake variables
-    private SensorManager mSensorManager;
-    private float mAccel;
-    private float mAccelCurrent;
-    //
-    private ImageView imageViewDice;
-    private final Random rng = new Random();
-    private TextView textViewCrit;
-    private TextView numberView;
+    private var mSensorManager: SensorManager? = null
+    private var mAccel = 0f
+    private var mAccelCurrent = 0f
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
+    //
+    private var imageViewDice: ImageView? = null
+    private val rng = Random()
+    private var textViewCrit: TextView? = null
+    private var numberView: TextView? = null
+    override fun onCreate(savedInstanceState: Bundle?)
     {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
         //shake things
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        Objects.requireNonNull(mSensorManager).registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-
-        imageViewDice = findViewById(R.id.image_view_dice);
-        imageViewDice.setOnClickListener(v -> rollDice(1));
-
-        textViewCrit = findViewById(R.id.critView);
-        numberView = findViewById(R.id.numberView);
-        numberView.setText("");
-
-        switch (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+        mSensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        mSensorManager!!.registerListener(mSensorListener, mSensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL)
+        imageViewDice = findViewById(R.id.image_view_dice)
+        imageViewDice?.setOnClickListener { rollDice(1) }
+        textViewCrit = findViewById(R.id.critView)
+        numberView = findViewById(R.id.numberView)
+        numberView?.text = ""
+        when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
         {
-            case Configuration.UI_MODE_NIGHT_YES:
-                textViewCrit.setTextColor(Color.WHITE);
-                numberView.setTextColor(Color.WHITE);
-                break;
-            case Configuration.UI_MODE_NIGHT_NO:
-                textViewCrit.setTextColor(Color.BLACK);
-                numberView.setTextColor(Color.BLACK);
-                break;
+            Configuration.UI_MODE_NIGHT_YES ->
+            {
+                textViewCrit?.setTextColor(Color.WHITE)
+                numberView?.setTextColor(Color.WHITE)
+            }
+            Configuration.UI_MODE_NIGHT_NO ->
+            {
+                textViewCrit?.setTextColor(Color.BLACK)
+                numberView?.setTextColor(Color.BLACK)
+            }
         }
     }
 
     //Shake nonsense
-    private final SensorEventListener mSensorListener = new SensorEventListener()
+    private val mSensorListener: SensorEventListener = object : SensorEventListener
     {
-        @Override
-        public void onSensorChanged(SensorEvent event)
+        override fun onSensorChanged(event: SensorEvent)
         {
-            float x = event.values[0];
-            float y = event.values[1];
-            float z = event.values[2];
-            float mAccelLast = mAccelCurrent;
-            mAccelCurrent = (float) Math.sqrt(x * x + y * y + z * z);
-            float delta = mAccelCurrent - mAccelLast;
-            mAccel = mAccel * 0.9f + delta;
+            val x = event.values[0]
+            val y = event.values[1]
+            val z = event.values[2]
+            val mAccelLast = mAccelCurrent
+            mAccelCurrent = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
+            val delta = mAccelCurrent - mAccelLast
+            mAccel = mAccel * 0.9f + delta
             if (mAccel > 15f)
             {
 //                Toast.makeText(getApplicationContext(), "Shaken, not stirred.", Toast.LENGTH_LONG).show();
-                rollDice(2);
+                rollDice(2)
             }
         }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy)
-        {
-
-        }
-    };
-    @Override
-    protected void onResume()
-    {
-        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-        super.onResume();
-    }
-    @Override
-    protected void onPause()
-    {
-        mSensorManager.unregisterListener(mSensorListener);
-        super.onPause();
+        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
     }
 
-    private void rollDice(int sound)
+    override fun onResume()
     {
-        MediaPlayer rollSound = MediaPlayer.create(this, R.raw.roll);
-        switch(sound)
+        mSensorManager!!.registerListener(mSensorListener, mSensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL)
+        super.onResume()
+    }
+
+    override fun onPause()
+    {
+        mSensorManager!!.unregisterListener(mSensorListener)
+        super.onPause()
+    }
+
+    private fun rollDice(sound: Int)
+    {
+        var rollSound = MediaPlayer.create(this, R.raw.roll)
+        when (sound)
         {
-            case 1:
-                rollSound = MediaPlayer.create(this, R.raw.roll);
-                break;
-            case 2:
-                rollSound = MediaPlayer.create(this, R.raw.shake);
-                break;
+            1 -> rollSound = MediaPlayer.create(this, R.raw.roll)
+            2 -> rollSound = MediaPlayer.create(this, R.raw.shake)
         }
-
-        int randomNumber = rng.nextInt(360);
-        imageViewDice.setRotation(randomNumber);
-        rollSound.start();
-        textViewCrit.setVisibility(View.INVISIBLE);
-        randomNumber = rng.nextInt(20) + 1;
-
-        String randoNum = String.valueOf(randomNumber);
-
-        switch(randomNumber)
+        var randomNumber = rng.nextInt(360)
+        imageViewDice!!.rotation = randomNumber.toFloat()
+        rollSound.start()
+        textViewCrit!!.visibility = View.INVISIBLE
+        randomNumber = rng.nextInt(20) + 1
+        var randoNum = randomNumber.toString()
+        when (randomNumber)
         {
-            case 1:
-                randoNum += " :(";
-                numberView.setText(randoNum);
-                break;
-            case 20:
-                randoNum += " :)";
-                numberView.setText(randoNum);
-            default:
-                numberView.setText(randoNum);
+            1 ->
+            {
+                randoNum += " :("
+                numberView!!.text = randoNum
+            }
+            20 ->
+            {
+                randoNum += " :)"
+                numberView!!.text = randoNum
+                numberView!!.text = randoNum
+            }
+            else -> numberView!!.text = randoNum
         }
-
-        switch (randomNumber)
+        when (randomNumber)
         {
-            case 1:
-                MediaPlayer failSound = MediaPlayer.create(this, R.raw.oof);
-                failSound.start();
-                imageViewDice.setImageResource(R.drawable.d20_1);
-                textViewCrit.setVisibility(View.VISIBLE);
-                textViewCrit.setText(R.string.crit_failure);
-                break;
-            case 2:
-                imageViewDice.setImageResource(R.drawable.d20_2);
-                break;
-            case 3:
-                imageViewDice.setImageResource(R.drawable.d20_3);
-                break;
-            case 4:
-                imageViewDice.setImageResource(R.drawable.d20_4);
-                break;
-            case 5:
-                imageViewDice.setImageResource(R.drawable.d20_5);
-                break;
-            case 6:
-                imageViewDice.setImageResource(R.drawable.d20_6 );
-                break;
-            case 7:
-                imageViewDice.setImageResource(R.drawable.d20_7);
-                break;
-            case 8:
-                imageViewDice.setImageResource(R.drawable.d20_8);
-                break;
-            case 9:
-                imageViewDice.setImageResource(R.drawable.d20_9);
-                break;
-            case 10:
-                imageViewDice.setImageResource(R.drawable.d20_10);
-                break;
-            case 11:
-                imageViewDice.setImageResource(R.drawable.d20_11);
-                break;
-            case 12:
-                imageViewDice.setImageResource(R.drawable.d20_12);
-                break;
-            case 13:
-                imageViewDice.setImageResource(R.drawable.d20_13);
-                break;
-            case 14:
-                imageViewDice.setImageResource(R.drawable.d20_14);
-                break;
-            case 15:
-                imageViewDice.setImageResource(R.drawable.d20_15);
-                break;
-            case 16:
-                imageViewDice.setImageResource(R.drawable.d20_16);
-                break;
-            case 17:
-                imageViewDice.setImageResource(R.drawable.d20_17);
-                break;
-            case 18:
-                imageViewDice.setImageResource(R.drawable.d20_18);
-                break;
-            case 19:
-                imageViewDice.setImageResource(R.drawable.d20_19);
-                break;
-            case 20:
-                MediaPlayer succSound = MediaPlayer.create(this, R.raw.noice);
-//                succSound.setVolume(0,100);
-                succSound.start();
-                imageViewDice.setImageResource(R.drawable.d20_20);
-                textViewCrit.setVisibility(View.VISIBLE);
-                textViewCrit.setText(R.string.crit_success);
-                break;
+            1 ->
+            {
+                val failSound = MediaPlayer.create(this, R.raw.oof)
+                failSound.start()
+                imageViewDice!!.setImageResource(R.drawable.d20_1)
+                textViewCrit!!.visibility = View.VISIBLE
+                textViewCrit!!.setText(R.string.crit_failure)
+            }
+            2 -> imageViewDice!!.setImageResource(R.drawable.d20_2)
+            3 -> imageViewDice!!.setImageResource(R.drawable.d20_3)
+            4 -> imageViewDice!!.setImageResource(R.drawable.d20_4)
+            5 -> imageViewDice!!.setImageResource(R.drawable.d20_5)
+            6 -> imageViewDice!!.setImageResource(R.drawable.d20_6)
+            7 -> imageViewDice!!.setImageResource(R.drawable.d20_7)
+            8 -> imageViewDice!!.setImageResource(R.drawable.d20_8)
+            9 -> imageViewDice!!.setImageResource(R.drawable.d20_9)
+            10 -> imageViewDice!!.setImageResource(R.drawable.d20_10)
+            11 -> imageViewDice!!.setImageResource(R.drawable.d20_11)
+            12 -> imageViewDice!!.setImageResource(R.drawable.d20_12)
+            13 -> imageViewDice!!.setImageResource(R.drawable.d20_13)
+            14 -> imageViewDice!!.setImageResource(R.drawable.d20_14)
+            15 -> imageViewDice!!.setImageResource(R.drawable.d20_15)
+            16 -> imageViewDice!!.setImageResource(R.drawable.d20_16)
+            17 -> imageViewDice!!.setImageResource(R.drawable.d20_17)
+            18 -> imageViewDice!!.setImageResource(R.drawable.d20_18)
+            19 -> imageViewDice!!.setImageResource(R.drawable.d20_19)
+            20 ->
+            {
+                val succSound = MediaPlayer.create(this, R.raw.noice)
+                //                succSound.setVolume(0,100);
+                succSound.start()
+                imageViewDice!!.setImageResource(R.drawable.d20_20)
+                textViewCrit!!.visibility = View.VISIBLE
+                textViewCrit!!.setText(R.string.crit_success)
+            }
         }
     }
 }
